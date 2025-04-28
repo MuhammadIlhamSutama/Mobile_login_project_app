@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">My Application</string>
+    <string name="navigate_your_work_journey_efficient_easy"><![CDATA[Navigate Your Work Journey efficient & Easy]]></string>
+    <string name="back">Back</string>
 </resources>

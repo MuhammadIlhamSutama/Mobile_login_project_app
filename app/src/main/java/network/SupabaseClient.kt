@@ -6,8 +6,8 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 object SupabaseClient {
-    const val API_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlnbHNhYmlscHl2YXJ6ZGFkb2NqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQzODMyMjUsImV4cCI6MjA1OTk1OTIyNX0.jB7ual9xU_xixJW-8I0Ft98RBTl1CZo_cCzlFcVu0Ks"
-    private const val BASE_URL = "https://iglsabilpyvarzdadocj.supabase.co/rest/v1/"
+    const val API_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im90ZWVidmd0c3Zncmtmb29pbnJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDMwNDU1NzQsImV4cCI6MjA1ODYyMTU3NH0.IE1UReAZZk-9fbqi8SV3EF86Py703eoJVvpEBbzCBAo"
+    private const val BASE_URL = "https://oteebvgtsvgrkfooinrv.supabase.co/rest/v1/"
 
     private val logging = HttpLoggingInterceptor().apply {
         level = HttpLoggingInterceptor.Level.BODY

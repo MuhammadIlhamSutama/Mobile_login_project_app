@@ -2,81 +2,120 @@ package com.example.myapplication
 
 import android.content.Intent
 import android.os.Bundle
+import android.text.InputType
+import android.view.WindowInsets
+import android.view.WindowInsetsController
 import android.widget.Button
 import android.widget.EditText
+import android.widget.ImageButton
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import kotlinx.coroutines.launch
 import network.SupabaseClient
 
 class LoginActivity : AppCompatActivity() {
+
     private lateinit var etId: EditText
     private lateinit var etPassword: EditText
-    private lateinit var btnLogin: Button
+    private lateinit var btnLogin: ImageButton
+    private lateinit var btnTogglePassword: ImageButton
+    private var isPasswordVisible = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
 
-        etId = findViewById(R.id.etId)
+        // Full Screen dengan WindowInsetsController
+        hideSystemBars()
+
+        etId = findViewById(R.id.etUsername)
         etPassword = findViewById(R.id.etPassword)
         btnLogin = findViewById(R.id.btnLogin)
+        btnTogglePassword = findViewById(R.id.btnTogglePassword)
 
         btnLogin.setOnClickListener {
             val idText = etId.text.toString().trim()
             val password = etPassword.text.toString().trim()
 
-            // Validate fields
             if (idText.isEmpty() || password.isEmpty()) {
                 Toast.makeText(this, "ID dan Password wajib diisi", Toast.LENGTH_SHORT).show()
+            } else if (password.length < 6) {
+                Toast.makeText(this, "Password harus lebih dari 6 karakter", Toast.LENGTH_SHORT).show()
             } else {
-                try {
-                    // Try parsing the ID as an integer
-                    val id = idText.toInt()
-
-                    // Validate password length
-                    if (password.length < 6) {
-                        Toast.makeText(this, "Password harus lebih dari 6 karakter", Toast.LENGTH_SHORT).show()
-                    } else {
-                        // Call the login function
-                        login(id, password)
-                    }
-                } catch (e: NumberFormatException) {
-                    Toast.makeText(this, "ID harus berupa angka", Toast.LENGTH_SHORT).show()
-                }
+                login(idText, password)
             }
+        }
+
+        btnTogglePassword.setOnClickListener {
+            if (isPasswordVisible) {
+                // Sembunyikan password
+                etPassword.inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
+                btnTogglePassword.setImageResource(R.drawable.ic_visibility)
+            } else {
+                // Tampilkan password
+                etPassword.inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
+                btnTogglePassword.setImageResource(R.drawable.ic_visibility)
+            }
+            etPassword.setSelection(etPassword.text.length) // Pindahkan cursor ke akhir
+            isPasswordVisible = !isPasswordVisible
         }
     }
 
-    private fun login(id: Int, password: String) {
+    private fun login(id: String, password: String) {
         lifecycleScope.launch {
             try {
-                // Fetch client data from Supabase
-                val response = SupabaseClient.retrofitService.getClientById("eq.$id")
+                val response = SupabaseClient.retrofitService.getClientByUsername("eq.$id")
 
                 if (response.isNotEmpty()) {
                     val client = response[0]
 
-                    // Check password
                     if (client.password == password) {
-                        // If login is successful, navigate to MainActivity
                         val intent = Intent(this@LoginActivity, MainActivity::class.java)
                         startActivity(intent)
                         finish()
                     } else {
-                        Toast.makeText(this@LoginActivity, "Password salah", Toast.LENGTH_SHORT).show()
+                        showCustomDialog()
                     }
                 } else {
-                    Toast.makeText(this@LoginActivity, "ID tidak ditemukan", Toast.LENGTH_SHORT).show()
+                    showCustomDialog()
                 }
-
             } catch (e: Exception) {
-                // Show error if the login request fails
                 Toast.makeText(this@LoginActivity, "Gagal login: ${e.message}", Toast.LENGTH_LONG).show()
-                // Log the exception for debugging purposes
                 e.printStackTrace()
             }
+        }
+    }
+
+    private fun showCustomDialog() {
+        val bottomSheetDialog = BottomSheetDialog(this)
+        val view = layoutInflater.inflate(R.layout.cancel_toast_login, null)
+        bottomSheetDialog.setContentView(view)
+        bottomSheetDialog.setCancelable(true)
+
+        val btnClose = view.findViewById<Button>(R.id.btnClose)
+        btnClose.setOnClickListener {
+            bottomSheetDialog.dismiss()
+        }
+
+        bottomSheetDialog.show()
+    }
+
+    private fun hideSystemBars() {
+        window.setDecorFitsSystemWindows(false) // Agar layout benar-benar penuh
+
+        val controller = window.insetsController
+        if (controller != null) {
+            controller.hide(WindowInsets.Type.statusBars() or WindowInsets.Type.navigationBars())
+            controller.systemBarsBehavior = WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        }
+    }
+
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        if (hasFocus) {
+            hideSystemBars() // Biar fullscreen tetap aktif walaupun user swipe
         }
     }
 }
