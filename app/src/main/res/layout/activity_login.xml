@@ -31,7 +31,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="Username"
-            android:background="@drawable/kotak"
+            android:background="@drawable/kotak_rounded"
             android:padding="12dp"
             android:inputType="text"
             android:layout_marginStart="40dp"
@@ -52,7 +52,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="Password"
-                android:background="@drawable/kotak"
+                android:background="@drawable/kotak_rounded"
                 android:paddingEnd="48dp"    android:padding="12dp"
                 android:inputType="textPassword"/>
 
