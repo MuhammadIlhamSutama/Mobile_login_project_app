@@ -1,6 +1,8 @@
 package com.example.myapplication
 
+import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.text.InputType
 import android.view.WindowInsets
@@ -9,6 +11,7 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.bottomsheet.BottomSheetDialog
@@ -27,8 +30,6 @@ class LoginActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
 
-        // Full Screen dengan WindowInsetsController
-        hideSystemBars()
 
         etId = findViewById(R.id.etUsername)
         etPassword = findViewById(R.id.etPassword)
@@ -70,8 +71,15 @@ class LoginActivity : AppCompatActivity() {
 
                 if (response.isNotEmpty()) {
                     val client = response[0]
-
                     if (client.password == password) {
+                        // ✅ Simpan token/userId ke SharedPreferences
+                        val sharedPref = getSharedPreferences("login_pref", Context.MODE_PRIVATE)
+                        val editor = sharedPref.edit()
+                        editor.putString("user_id", client.id.toString()) // atau token lain kalau ada
+                        editor.putString("username", client.username)
+                        editor.apply()
+
+                        // Pindah ke MainActivity
                         val intent = Intent(this@LoginActivity, MainActivity::class.java)
                         startActivity(intent)
                         finish()
@@ -102,20 +110,26 @@ class LoginActivity : AppCompatActivity() {
         bottomSheetDialog.show()
     }
 
-    private fun hideSystemBars() {
-        window.setDecorFitsSystemWindows(false) // Agar layout benar-benar penuh
+    @RequiresApi(Build.VERSION_CODES.R)
+    private fun enableFullscreenLayout() {
+        window.setDecorFitsSystemWindows(false)
+
+        window.statusBarColor = android.graphics.Color.TRANSPARENT
+        window.navigationBarColor = android.graphics.Color.TRANSPARENT
 
         val controller = window.insetsController
-        if (controller != null) {
-            controller.hide(WindowInsets.Type.statusBars() or WindowInsets.Type.navigationBars())
-            controller.systemBarsBehavior = WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        controller?.apply {
+            // TIDAK perlu hide system bars
+            systemBarsBehavior = WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.R)
     override fun onWindowFocusChanged(hasFocus: Boolean) {
         super.onWindowFocusChanged(hasFocus)
         if (hasFocus) {
-            hideSystemBars() // Biar fullscreen tetap aktif walaupun user swipe
+            enableFullscreenLayout()
+
         }
     }
 }

@@ -2,5 +2,6 @@ package data.model
 
 data class Client(
     val id:Int,
-    val password: String
+    val password: String,
+    val username: String,
 )
