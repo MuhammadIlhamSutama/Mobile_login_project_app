@@ -1,0 +1,73 @@
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="12dp"
+    android:background="@drawable/bg_card"
+    android:layout_marginBottom="12dp">
+
+    <!-- Baris atas dibungkus HorizontalScrollView -->
+    <HorizontalScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:weightSum="6"
+            android:paddingBottom="8dp">
+
+            <TextView
+                android:id="@+id/textNo"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="0.5"
+                android:text="1"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/textDate"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1.5"
+                 />
+
+            <TextView
+                android:id="@+id/textCheckIn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="07:45"
+                android:background="@drawable/bg_checkin"
+                android:gravity="center"
+                android:textColor="#fff"
+                android:padding="4dp" />
+
+            <TextView
+                android:id="@+id/textCheckOut"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="16:32"
+                android:background="@drawable/bg_checkout"
+                android:gravity="center"
+                android:textColor="#fff"
+                android:padding="4dp" />
+
+            <TextView
+                android:id="@+id/textStatus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Terlambat"
+                android:textStyle="bold"
+                android:textColor="#000"
+                android:paddingTop="4dp" />
+        </LinearLayout>
+    </HorizontalScrollView>
+
+    <!-- Baris status -->
+
+</LinearLayout>
