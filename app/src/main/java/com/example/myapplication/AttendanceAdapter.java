@@ -26,9 +26,11 @@ public class AttendanceAdapter extends RecyclerView.Adapter<AttendanceAdapter.At
     @Override
     public void onBindViewHolder(AttendanceViewHolder holder, int position) {
         Attendance item = attendanceList.get(position);
+
+        // Nomor otomatis dari 1, 2, 3, ...
+        holder.textId.setText(String.valueOf(position + 1));
+
         holder.textdate.setText("" + item.date);
-        holder.textCheckIn.setText("" + item.checkIn);
-        holder.textCheckOut.setText("" + item.checkOut);
         holder.textStatus.setText("" + item.status);
     }
 
@@ -38,14 +40,12 @@ public class AttendanceAdapter extends RecyclerView.Adapter<AttendanceAdapter.At
     }
 
     public static class AttendanceViewHolder extends RecyclerView.ViewHolder {
-        TextView textId, textdate, textCheckIn, textCheckOut, textStatus;
+        TextView textId, textdate, textStatus;
 
         public AttendanceViewHolder(View itemView) {
             super(itemView);
             textId = itemView.findViewById(R.id.textNo);
             textdate = itemView.findViewById(R.id.textDate);
-            textCheckIn = itemView.findViewById(R.id.textCheckIn);
-            textCheckOut = itemView.findViewById(R.id.textCheckOut);
             textStatus = itemView.findViewById(R.id.textStatus);
         }
     }

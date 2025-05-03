@@ -5,7 +5,6 @@ import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.text.InputType
-import android.view.WindowInsets
 import android.view.WindowInsetsController
 import android.widget.Button
 import android.widget.EditText
@@ -75,8 +74,9 @@ class LoginActivity : AppCompatActivity() {
                         // ✅ Simpan token/userId ke SharedPreferences
                         val sharedPref = getSharedPreferences("login_pref", Context.MODE_PRIVATE)
                         val editor = sharedPref.edit()
-                        editor.putString("user_id", client.id.toString()) // atau token lain kalau ada
+                        editor.putString("user_id", client.user_id.toString()) // atau token lain kalau ada
                         editor.putString("username", client.username)
+
                         editor.apply()
 
                         // Pindah ke MainActivity

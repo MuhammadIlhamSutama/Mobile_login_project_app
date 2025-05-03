@@ -1,6 +1,5 @@
 package com.example.myapplication;
 
-
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -12,6 +11,8 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -31,6 +32,7 @@ public class MainActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
     private AttendanceAdapter adapter;
     private List<Attendance> attendanceList = new ArrayList<>();
+    private SwipeRefreshLayout swipeRefreshLayout;
 
     private static final String SUPABASE_URL = "https://oteebvgtsvgrkfooinrv.supabase.co/rest/v1/attendance";
     private static final String API_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im90ZWVidmd0c3Zncmtmb29pbnJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDMwNDU1NzQsImV4cCI6MjA1ODYyMTU3NH0.IE1UReAZZk-9fbqi8SV3EF86Py703eoJVvpEBbzCBAo";
@@ -40,7 +42,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // Fullscreen
+        // Fullscreen & Hide ActionBar
         getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_FULLSCREEN);
         if (getSupportActionBar() != null) {
             getSupportActionBar().hide();
@@ -52,19 +54,52 @@ public class MainActivity extends AppCompatActivity {
         String username = pref.getString("username", "User");
         textName.setText(username);
 
+        // Tombol Logout
+        Button logoutButton = findViewById(R.id.btnLogout);
+        logoutButton.setOnClickListener(v -> {
+            SharedPreferences sharedPref = getSharedPreferences("login_pref", MODE_PRIVATE);
+            sharedPref.edit().clear().apply();
+
+            Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+            startActivity(intent);
+            finish();
+        });
+
+        // Setup SwipeRefreshLayout
+        swipeRefreshLayout = findViewById(R.id.swipeRefreshLayout);
+        swipeRefreshLayout.setOnRefreshListener(this::fetchAttendanceData);
+
+        // Setup RecyclerView
         recyclerView = findViewById(R.id.recyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         adapter = new AttendanceAdapter(attendanceList);
         recyclerView.setAdapter(adapter);
 
+        // Load data awal
+        swipeRefreshLayout.setRefreshing(true);
         fetchAttendanceData();
     }
 
     private void fetchAttendanceData() {
         OkHttpClient client = new OkHttpClient();
 
+        // Ambil user ID dari SharedPreferences
+        SharedPreferences pref = getSharedPreferences("login_pref", MODE_PRIVATE);
+        String userId = pref.getString("user_id", null);
+
+        if (userId == null) {
+            runOnUiThread(() -> {
+                swipeRefreshLayout.setRefreshing(false);
+                Toast.makeText(this, "User ID tidak ditemukan", Toast.LENGTH_SHORT).show();
+            });
+            return;
+        }
+
+        // Tambahkan filter berdasarkan user_id
+        String urlWithFilter = SUPABASE_URL + "?employee_id=eq." + userId;
+
         Request request = new Request.Builder()
-                .url(SUPABASE_URL)
+                .url(urlWithFilter)
                 .addHeader("apikey", API_KEY)
                 .addHeader("Authorization", "Bearer " + API_KEY)
                 .addHeader("Accept", "application/json")
@@ -73,12 +108,23 @@ public class MainActivity extends AppCompatActivity {
         client.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
-                runOnUiThread(() -> Toast.makeText(MainActivity.this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+                runOnUiThread(() -> {
+                    swipeRefreshLayout.setRefreshing(false);
+                    Toast.makeText(MainActivity.this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
             }
 
             @Override
             public void onResponse(Call call, Response response) throws IOException {
-                if (!response.isSuccessful()) return;
+                if (!response.isSuccessful()) {
+                    String errBody = response.body().string();
+                    runOnUiThread(() -> {
+                        swipeRefreshLayout.setRefreshing(false);
+                        Toast.makeText(MainActivity.this, "HTTP " + response.code() + ": " + errBody, Toast.LENGTH_LONG).show();
+                    });
+                    return;
+                }
+
 
                 String responseData = response.body().string();
 
@@ -101,25 +147,15 @@ public class MainActivity extends AppCompatActivity {
                         attendanceList.clear();
                         attendanceList.addAll(items);
                         adapter.notifyDataSetChanged();
+                        swipeRefreshLayout.setRefreshing(false);
                     });
 
                 } catch (Exception e) {
-                    runOnUiThread(() -> Toast.makeText(MainActivity.this, "Parsing error", Toast.LENGTH_SHORT).show());
+                    runOnUiThread(() -> {
+                        swipeRefreshLayout.setRefreshing(false);
+                        Toast.makeText(MainActivity.this, "Parsing error", Toast.LENGTH_SHORT).show();
+                    });
                 }
-            }
-        });
-
-// Tombol logout
-        Button logoutButton = findViewById(R.id.btnLogout);
-        logoutButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                SharedPreferences sharedPref = getSharedPreferences("login_pref", MODE_PRIVATE);
-                sharedPref.edit().clear().apply();
-
-                Intent intent = new Intent(MainActivity.this, LoginActivity.class);
-                startActivity(intent);
-                finish();
             }
         });
     }
