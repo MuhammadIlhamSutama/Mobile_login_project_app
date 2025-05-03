@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
+import android.view.WindowInsetsController;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -43,10 +44,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         // Fullscreen & Hide ActionBar
-        getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_FULLSCREEN);
-        if (getSupportActionBar() != null) {
-            getSupportActionBar().hide();
-        }
+        enableFullscreenLayout();
 
         // Tampilkan nama user dari SharedPreferences
         TextView textName = findViewById(R.id.textName);
@@ -78,6 +76,23 @@ public class MainActivity extends AppCompatActivity {
         // Load data awal
         swipeRefreshLayout.setRefreshing(true);
         fetchAttendanceData();
+    }
+
+    private void enableFullscreenLayout() {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
+            getWindow().setDecorFitsSystemWindows(false);
+            getWindow().setStatusBarColor(android.graphics.Color.TRANSPARENT);
+            getWindow().setNavigationBarColor(android.graphics.Color.TRANSPARENT);
+
+            final WindowInsetsController controller = getWindow().getInsetsController();
+            if (controller != null) {
+                controller.setSystemBarsBehavior(WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
+            }
+        } else {
+            // For older versions, hide the system UI
+            getWindow().getDecorView().setSystemUiVisibility(
+                    View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+        }
     }
 
     private void fetchAttendanceData() {
@@ -125,7 +140,6 @@ public class MainActivity extends AppCompatActivity {
                     return;
                 }
 
-
                 String responseData = response.body().string();
 
                 try {
@@ -145,7 +159,10 @@ public class MainActivity extends AppCompatActivity {
 
                     runOnUiThread(() -> {
                         attendanceList.clear();
-                        attendanceList.addAll(items);
+                        // Reverse the list to show the latest data first
+                        for (int i = items.size() - 1; i >= 0; i--) {
+                            attendanceList.add(items.get(i));
+                        }
                         adapter.notifyDataSetChanged();
                         swipeRefreshLayout.setRefreshing(false);
                     });
