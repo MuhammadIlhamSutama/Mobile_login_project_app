@@ -71,7 +71,7 @@ class LoginActivity : AppCompatActivity() {
                 if (response.isNotEmpty()) {
                     val client = response[0]
                     if (client.password == password) {
-                        // ✅ Simpan token/userId ke SharedPreferences
+                        //  Simpan token/userId ke SharedPreferences
                         val sharedPref = getSharedPreferences("login_pref", Context.MODE_PRIVATE)
                         val editor = sharedPref.edit()
                         editor.putString("user_id", client.user_id.toString()) // atau token lain kalau ada

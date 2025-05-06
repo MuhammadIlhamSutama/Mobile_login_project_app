@@ -3,17 +3,18 @@ package com.example.myapplication;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.security.crypto.EncryptedSharedPreferences;
+import androidx.security.crypto.MasterKey;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
-import android.view.WindowInsetsController;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -36,7 +37,6 @@ public class MainActivity extends AppCompatActivity {
     private SwipeRefreshLayout swipeRefreshLayout;
 
     private static final String SUPABASE_URL = "https://oteebvgtsvgrkfooinrv.supabase.co/rest/v1/attendance";
-    private static final String API_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im90ZWVidmd0c3Zncmtmb29pbnJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDMwNDU1NzQsImV4cCI6MjA1ODYyMTU3NH0.IE1UReAZZk-9fbqi8SV3EF86Py703eoJVvpEBbzCBAo";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,7 +44,10 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         // Fullscreen & Hide ActionBar
-        enableFullscreenLayout();
+        getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_FULLSCREEN);
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().hide();
+        }
 
         // Tampilkan nama user dari SharedPreferences
         TextView textName = findViewById(R.id.textName);
@@ -63,6 +66,16 @@ public class MainActivity extends AppCompatActivity {
             finish();
         });
 
+        // Tombol Menu About
+        LinearLayout moveAbout = findViewById(R.id.move_about);
+        moveAbout.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this, AboutActivity.class);
+                startActivity(intent);
+            }
+        });
+
         // Setup SwipeRefreshLayout
         swipeRefreshLayout = findViewById(R.id.swipeRefreshLayout);
         swipeRefreshLayout.setOnRefreshListener(this::fetchAttendanceData);
@@ -73,32 +86,17 @@ public class MainActivity extends AppCompatActivity {
         adapter = new AttendanceAdapter(attendanceList);
         recyclerView.setAdapter(adapter);
 
+        // Simpan API Key jika belum disimpan (hanya sekali)
+        saveApiKeyIfNotExists();
+
         // Load data awal
         swipeRefreshLayout.setRefreshing(true);
         fetchAttendanceData();
     }
 
-    private void enableFullscreenLayout() {
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
-            getWindow().setDecorFitsSystemWindows(false);
-            getWindow().setStatusBarColor(android.graphics.Color.TRANSPARENT);
-            getWindow().setNavigationBarColor(android.graphics.Color.TRANSPARENT);
-
-            final WindowInsetsController controller = getWindow().getInsetsController();
-            if (controller != null) {
-                controller.setSystemBarsBehavior(WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
-            }
-        } else {
-            // For older versions, hide the system UI
-            getWindow().getDecorView().setSystemUiVisibility(
-                    View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
-        }
-    }
-
     private void fetchAttendanceData() {
         OkHttpClient client = new OkHttpClient();
 
-        // Ambil user ID dari SharedPreferences
         SharedPreferences pref = getSharedPreferences("login_pref", MODE_PRIVATE);
         String userId = pref.getString("user_id", null);
 
@@ -110,13 +108,19 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        // Tambahkan filter berdasarkan user_id
+        String apiKey = getApiKey();
+        if (apiKey == null) {
+            swipeRefreshLayout.setRefreshing(false);
+            Toast.makeText(this, "API Key tidak tersedia", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         String urlWithFilter = SUPABASE_URL + "?employee_id=eq." + userId;
 
         Request request = new Request.Builder()
                 .url(urlWithFilter)
-                .addHeader("apikey", API_KEY)
-                .addHeader("Authorization", "Bearer " + API_KEY)
+                .addHeader("apikey", apiKey)
+                .addHeader("Authorization", "Bearer " + apiKey)
                 .addHeader("Accept", "application/json")
                 .build();
 
@@ -159,7 +163,6 @@ public class MainActivity extends AppCompatActivity {
 
                     runOnUiThread(() -> {
                         attendanceList.clear();
-                        // Reverse the list to show the latest data first
                         for (int i = items.size() - 1; i >= 0; i--) {
                             attendanceList.add(items.get(i));
                         }
@@ -175,5 +178,50 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+    }
+
+    private String getApiKey() {
+        try {
+            MasterKey masterKey = new MasterKey.Builder(this)
+                    .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+                    .build();
+
+            SharedPreferences encryptedPrefs = EncryptedSharedPreferences.create(
+                    this,
+                    "secure_prefs",
+                    masterKey,
+                    EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+                    EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+            );
+
+            return encryptedPrefs.getString("supabase_api_key", null);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    private void saveApiKeyIfNotExists() {
+        try {
+            MasterKey masterKey = new MasterKey.Builder(this)
+                    .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+                    .build();
+
+            SharedPreferences encryptedPrefs = EncryptedSharedPreferences.create(
+                    this,
+                    "secure_prefs",
+                    masterKey,
+                    EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+                    EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+            );
+
+            if (!encryptedPrefs.contains("supabase_api_key")) {
+                encryptedPrefs.edit()
+                        .putString("supabase_api_key", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...")
+                        .apply();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

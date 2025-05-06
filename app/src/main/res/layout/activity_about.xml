@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".AboutActivity">
+
+    <ImageView
+        android:id="@+id/bg_header"
+        android:layout_width="0dp"
+        android:layout_height="72dp"
+        android:scaleType="centerCrop"
+        android:src="@drawable/kotak"
+        app:tint="@color/dark_green"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <LinearLayout
+        android:id="@+id/header_layout"
+        android:layout_width="0dp"
+        android:layout_height="72dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="10dp">
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_menu" />
+
+        <TextView
+            android:id="@+id/textView2"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="About"
+            android:textAlignment="center"
+            android:textColor="@color/white"
+            android:textSize="22sp"
+            android:textStyle="bold" />
+
+        <ImageView
+            android:id="@+id/imageView2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:srcCompat="@drawable/ic_profile" />
+    </LinearLayout>
+
+    <ScrollView
+        android:id="@+id/scroll_content"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintTop_toBottomOf="@id/header_layout"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginStart="20dp"
+            android:layout_marginEnd="20dp">
+
+            <ImageView
+                android:id="@+id/imageView3"
+                android:layout_marginTop="20dp"
+                android:layout_width="match_parent"
+                android:layout_height="200dp"
+                app:srcCompat="@drawable/welcome"
+                android:layout_marginBottom="20dp"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="This is Easy Tapp"
+                android:textStyle="bold"
+                android:textSize="32sp"
+                />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="aplikasi presensi digital ini dirancang untuk memudahkan pemantauan kehadiran secara real-time, praktis, dan akurat.\n\nAplikasi ini terintegrasi dengan IoT presensi berbasis RFID yang dikembangkan oleh kelompok mahasiswa PNJ dengan berkolaborasi dengan PT Bit House."
+                android:justificationMode="inter_word"
+                android:textSize="22sp"
+                android:layout_marginTop="10dp"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="How To use This App?"
+                android:textStyle="bold"
+                android:textSize="32sp"
+                android:layout_marginTop="10dp"
+                />
+
+            <ImageView
+                android:id="@+id/imageView4"
+                android:layout_width="154dp"
+                android:layout_height="154dp"
+                app:srcCompat="@drawable/tutor"
+                android:layout_gravity="center"
+                android:layout_marginTop="40dp"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Pastikan anda telah memiliki kartu presensi, id, dan password untuk melakukan login"
+                android:textSize="22sp"
+                android:layout_marginTop="5dp"/>
+
+            <ImageView
+                android:id="@+id/imageView5"
+                android:layout_width="154dp"
+                android:layout_height="154dp"
+                app:srcCompat="@drawable/tutorial_2"
+                android:layout_gravity="center"
+                android:layout_marginTop="40dp"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Lakukan presensi dengan tap kartu RFID anda pada alat IoT yang telah disediakan "
+                android:textSize="22sp"
+                android:layout_marginTop="5dp"/>
+
+            <ImageView
+                android:id="@+id/imageView6"
+                android:layout_width="154dp"
+                android:layout_height="154dp"
+                app:srcCompat="@drawable/tutorial_3"
+                android:layout_gravity="center"
+                android:layout_marginTop="40dp"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Login ke akun anda melalui mobile app"
+                android:textSize="22sp"
+                android:layout_marginTop="5dp"/>
+
+            <ImageView
+                android:id="@+id/imageView7"
+                android:layout_width="match_parent"
+                android:layout_height="200dp"
+                app:srcCompat="@drawable/tutor_4"
+                android:layout_gravity="center"
+                android:layout_marginTop="20dp"
+                />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Buka halaman dashboard untuk cek kehadiran terkini lalu swipe tabel riwayat absensi untuk melihat data terkini"
+                android:textSize="22sp"
+                android:gravity="start"
+                android:layout_marginBottom="50dp"
+                />
+
+
+        </LinearLayout>
+    </ScrollView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
