@@ -1,20 +1,25 @@
 package com.example.myapplication;
 
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import androidx.security.crypto.EncryptedSharedPreferences;
-import androidx.security.crypto.MasterKey;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
+import android.view.WindowInsetsController;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.bumptech.glide.Glide;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -36,67 +41,49 @@ public class MainActivity extends AppCompatActivity {
     private List<Attendance> attendanceList = new ArrayList<>();
     private SwipeRefreshLayout swipeRefreshLayout;
 
-    private static final String SUPABASE_URL = "https://oteebvgtsvgrkfooinrv.supabase.co/rest/v1/attendance";
+    private static final String SUPABASE_URL = BuildConfig.SUPABASE_URL;
+    private static final String SUPABASE_CLIENTS_URL = BuildConfig.SUPABASE_CLIENTS_URL;
+    private static final String SUPABASE_API_KEY = BuildConfig.SUPABASE_KEY;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // Fullscreen & Hide ActionBar
-        getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_FULLSCREEN);
-        if (getSupportActionBar() != null) {
-            getSupportActionBar().hide();
-        }
-
-        // Tampilkan nama user dari SharedPreferences
         TextView textName = findViewById(R.id.textName);
         SharedPreferences pref = getSharedPreferences("login_pref", MODE_PRIVATE);
         String username = pref.getString("username", "User");
         textName.setText(username);
 
-        // Tombol Logout
         Button logoutButton = findViewById(R.id.btnLogout);
         logoutButton.setOnClickListener(v -> {
             SharedPreferences sharedPref = getSharedPreferences("login_pref", MODE_PRIVATE);
             sharedPref.edit().clear().apply();
-
-            Intent intent = new Intent(MainActivity.this, LoginActivity.class);
-            startActivity(intent);
+            startActivity(new Intent(MainActivity.this, LoginActivity.class));
             finish();
         });
 
-        // Tombol Menu About
         LinearLayout moveAbout = findViewById(R.id.move_about);
-        moveAbout.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(MainActivity.this, AboutActivity.class);
-                startActivity(intent);
-            }
-        });
+        moveAbout.setOnClickListener(v -> startActivity(new Intent(MainActivity.this, AboutActivity.class)));
 
-        // Setup SwipeRefreshLayout
+        LinearLayout moveChangePassword = findViewById(R.id.move_change_password);
+        moveChangePassword.setOnClickListener(v -> startActivity(new Intent(MainActivity.this, ChangePasswordActivity.class)));
+
         swipeRefreshLayout = findViewById(R.id.swipeRefreshLayout);
         swipeRefreshLayout.setOnRefreshListener(this::fetchAttendanceData);
 
-        // Setup RecyclerView
         recyclerView = findViewById(R.id.recyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         adapter = new AttendanceAdapter(attendanceList);
         recyclerView.setAdapter(adapter);
 
-        // Simpan API Key jika belum disimpan (hanya sekali)
-        saveApiKeyIfNotExists();
-
-        // Load data awal
         swipeRefreshLayout.setRefreshing(true);
         fetchAttendanceData();
+        loadProfilePicture();
     }
 
     private void fetchAttendanceData() {
         OkHttpClient client = new OkHttpClient();
-
         SharedPreferences pref = getSharedPreferences("login_pref", MODE_PRIVATE);
         String userId = pref.getString("user_id", null);
 
@@ -108,19 +95,12 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        String apiKey = getApiKey();
-        if (apiKey == null) {
-            swipeRefreshLayout.setRefreshing(false);
-            Toast.makeText(this, "API Key tidak tersedia", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
         String urlWithFilter = SUPABASE_URL + "?employee_id=eq." + userId;
 
         Request request = new Request.Builder()
                 .url(urlWithFilter)
-                .addHeader("apikey", apiKey)
-                .addHeader("Authorization", "Bearer " + apiKey)
+                .addHeader("apikey", SUPABASE_API_KEY)
+                .addHeader("Authorization", "Bearer " + SUPABASE_API_KEY)
                 .addHeader("Accept", "application/json")
                 .build();
 
@@ -145,7 +125,6 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 String responseData = response.body().string();
-
                 try {
                     JSONArray jsonArray = new JSONArray(responseData);
                     List<Attendance> items = new ArrayList<>();
@@ -180,48 +159,76 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private String getApiKey() {
-        try {
-            MasterKey masterKey = new MasterKey.Builder(this)
-                    .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
-                    .build();
+    private void loadProfilePicture() {
+        SharedPreferences pref = getSharedPreferences("login_pref", MODE_PRIVATE);
+        String userId = pref.getString("user_id", null);
+        if (userId == null) return;
 
-            SharedPreferences encryptedPrefs = EncryptedSharedPreferences.create(
-                    this,
-                    "secure_prefs",
-                    masterKey,
-                    EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-                    EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
-            );
+        OkHttpClient client = new OkHttpClient();
+        String url = SUPABASE_CLIENTS_URL + "?user_id=eq." + userId;
 
-            return encryptedPrefs.getString("supabase_api_key", null);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
+        Request request = new Request.Builder()
+                .url(url)
+                .addHeader("apikey", SUPABASE_API_KEY)
+                .addHeader("Authorization", "Bearer " + SUPABASE_API_KEY)
+                .addHeader("Accept", "application/json")
+                .build();
+
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                // Silent failure
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                if (!response.isSuccessful()) return;
+
+                String result = response.body().string();
+                try {
+                    JSONArray arr = new JSONArray(result);
+                    if (arr.length() > 0) {
+                        String imageUrl = arr.getJSONObject(0).optString("profile_picture", null);
+                        if (imageUrl != null && !imageUrl.isEmpty()) {
+                            runOnUiThread(() -> {
+                                ImageView imageView = findViewById(R.id.profileImageView);
+                                Glide.with(MainActivity.this)
+                                        .load(imageUrl)
+                                        .placeholder(R.drawable.ic_profile)
+                                        .circleCrop()
+                                        .into(imageView);
+                                imageView.setOnClickListener(v -> {
+                                    Intent intent = new Intent(MainActivity.this, ProfileActivity.class);
+                                    startActivity(intent);
+                                });
+                            });
+                        }
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.R)
+    private void enableFullscreenLayout() {
+        getWindow().setDecorFitsSystemWindows(false);
+        getWindow().setStatusBarColor(Color.TRANSPARENT);
+        getWindow().setNavigationBarColor(Color.TRANSPARENT);
+
+        WindowInsetsController controller = getWindow().getInsetsController();
+        if (controller != null) {
+            controller.setSystemBarsBehavior(WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
         }
     }
 
-    private void saveApiKeyIfNotExists() {
-        try {
-            MasterKey masterKey = new MasterKey.Builder(this)
-                    .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
-                    .build();
-
-            SharedPreferences encryptedPrefs = EncryptedSharedPreferences.create(
-                    this,
-                    "secure_prefs",
-                    masterKey,
-                    EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-                    EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
-            );
-
-            if (!encryptedPrefs.contains("supabase_api_key")) {
-                encryptedPrefs.edit()
-                        .putString("supabase_api_key", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...")
-                        .apply();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
+    @RequiresApi(api = Build.VERSION_CODES.R)
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        if (hasFocus) {
+            enableFullscreenLayout();
         }
     }
 }

@@ -44,39 +44,29 @@ public class LoginActivity extends AppCompatActivity {
         btnLogin = findViewById(R.id.btnLogin);
         btnTogglePassword = findViewById(R.id.btnTogglePassword);
 
-        btnLogin.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+        btnLogin.setOnClickListener(v -> {
+            String idText = etId.getText().toString().trim();
+            String password = etPassword.getText().toString().trim();
 
-                String idText = etId.getText().toString().trim();
-                String password = etPassword.getText().toString().trim();
-
-                if (idText.isEmpty() || password.isEmpty()) {
-                    Toast.makeText(LoginActivity.this, "ID dan Password wajib diisi", Toast.LENGTH_SHORT).show();
-                } else if (password.length() < 6) {
-                    Toast.makeText(LoginActivity.this, "Password harus lebih dari 6 karakter", Toast.LENGTH_SHORT).show();
-                } else {
-                    login(idText, password);
-                }
+            if (idText.isEmpty() || password.isEmpty()) {
+                Toast.makeText(LoginActivity.this, "ID dan Password wajib diisi", Toast.LENGTH_SHORT).show();
+            } else if (password.length() < 6) {
+                Toast.makeText(LoginActivity.this, "Password harus lebih dari 6 karakter", Toast.LENGTH_SHORT).show();
+            } else {
+                login(idText, password);
             }
         });
 
-        btnTogglePassword.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (isPasswordVisible) {
-                    // Sembunyikan password
-                    etPassword.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
-                    btnTogglePassword.setImageResource(R.drawable.ic_visibility);
-                } else {
-                    // Tampilkan password
-                    etPassword.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD);
-                    btnTogglePassword.setImageResource(R.drawable.ic_visibility);
-                }
-                // Pindahkan cursor ke akhir
-                etPassword.setSelection(etPassword.getText().length());
-                isPasswordVisible = !isPasswordVisible;
+        btnTogglePassword.setOnClickListener(v -> {
+            if (isPasswordVisible) {
+                etPassword.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+                btnTogglePassword.setImageResource(R.drawable.ic_visibility);
+            } else {
+                etPassword.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD);
+                btnTogglePassword.setImageResource(R.drawable.ic_visibility);
             }
+            etPassword.setSelection(etPassword.getText().length());
+            isPasswordVisible = !isPasswordVisible;
         });
     }
 
@@ -95,11 +85,13 @@ public class LoginActivity extends AppCompatActivity {
                 if (response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
                     Client client = response.body().get(0);
                     if (client.getPassword().equals(password)) {
-                        // Simpan token atau user_id ke SharedPreferences
+                        // Simpan data user ke SharedPreferences
                         SharedPreferences sharedPref = getSharedPreferences("login_pref", Context.MODE_PRIVATE);
                         SharedPreferences.Editor editor = sharedPref.edit();
                         editor.putString("user_id", String.valueOf(client.getUser_id()));
                         editor.putString("username", client.getUsername());
+                        editor.putString("access_token", client.getAccess_token());
+                        editor.putString("password", password); // simpan password untuk validasi di ChangePasswordActivity
                         editor.apply();
 
                         // Pindah ke MainActivity
@@ -129,10 +121,7 @@ public class LoginActivity extends AppCompatActivity {
         bottomSheetDialog.setCancelable(true);
 
         Button btnClose = view.findViewById(R.id.btnClose);
-        btnClose.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) { bottomSheetDialog.dismiss(); }
-        });
+        btnClose.setOnClickListener(v -> bottomSheetDialog.dismiss());
 
         bottomSheetDialog.show();
     }
@@ -145,7 +134,6 @@ public class LoginActivity extends AppCompatActivity {
 
         WindowInsetsController controller = getWindow().getInsetsController();
         if (controller != null) {
-            // Tidak perlu menyembunyikan system bars, hanya mengatur perilaku
             controller.setSystemBarsBehavior(WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
         }
     }

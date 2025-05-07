@@ -31,10 +31,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         android:layout_marginTop="10dp">
 
-        <ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/ic_menu" />
+
 
         <TextView
             android:id="@+id/textView2"
@@ -48,11 +45,6 @@
             android:textSize="22sp"
             android:textStyle="bold" />
 
-        <ImageView
-            android:id="@+id/imageView2"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            app:srcCompat="@drawable/ic_profile" />
     </LinearLayout>
 
     <ScrollView
@@ -81,16 +73,16 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="This is Easy Tapp"
+                android:text="What is Easy Tapp app?"
                 android:textStyle="bold"
                 android:textSize="32sp"
                 />
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="aplikasi presensi digital ini dirancang untuk memudahkan pemantauan kehadiran secara real-time, praktis, dan akurat.\n\nAplikasi ini terintegrasi dengan IoT presensi berbasis RFID yang dikembangkan oleh kelompok mahasiswa PNJ dengan berkolaborasi dengan PT Bit House."
+                android:text="Easy Tapp adalah aplikasi presensi digital ini dirancang untuk memudahkan pemantauan kehadiran secara real-time, praktis, dan akurat.\n\nAplikasi ini terintegrasi dengan IoT presensi berbasis RFID yang dikembangkan oleh kelompok mahasiswa PNJ dengan berkolaborasi dengan PT Bit House."
                 android:justificationMode="inter_word"
-                android:textSize="22sp"
+                android:textSize="18sp"
                 android:layout_marginTop="10dp"/>
 
             <TextView
@@ -114,7 +106,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Pastikan anda telah memiliki kartu presensi, id, dan password untuk melakukan login"
-                android:textSize="22sp"
+                android:textSize="18sp"
                 android:layout_marginTop="5dp"/>
 
             <ImageView
@@ -129,7 +121,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Lakukan presensi dengan tap kartu RFID anda pada alat IoT yang telah disediakan "
-                android:textSize="22sp"
+                android:textSize="18sp"
                 android:layout_marginTop="5dp"/>
 
             <ImageView
@@ -144,7 +136,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Login ke akun anda melalui mobile app"
-                android:textSize="22sp"
+                android:textSize="18sp"
                 android:layout_marginTop="5dp"/>
 
             <ImageView
@@ -160,7 +152,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Buka halaman dashboard untuk cek kehadiran terkini lalu swipe tabel riwayat absensi untuk melihat data terkini"
-                android:textSize="22sp"
+                android:textSize="18sp"
                 android:gravity="start"
                 android:layout_marginBottom="50dp"
                 />

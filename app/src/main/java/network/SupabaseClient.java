@@ -1,13 +1,23 @@
 package network;
 
+import android.util.Log;
+
+import com.example.myapplication.BuildConfig;
+
+import java.util.HashMap;
+import java.util.Map;
+
 import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 public class SupabaseClient {
     public static final SupabaseClient INSTANCE = new SupabaseClient();
-    public static final String API_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im90ZWVidmd0c3Zncmtmb29pbnJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDMwNDU1NzQsImV4cCI6MjA1ODYyMTU3NH0.IE1UReAZZk-9fbqi8SV3EF86Py703eoJVvpEBbzCBAo";
+    public static final String API_KEY = BuildConfig.SUPABASE_KEY;
     private static final String BASE_URL = "https://oteebvgtsvgrkfooinrv.supabase.co/rest/v1/";
 
     private final SupabaseService retrofitService;
@@ -22,7 +32,7 @@ public class SupabaseClient {
 
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(BASE_URL)
-                .client(client) // menyertakan interceptor logging
+                .client(client)
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
 
@@ -32,4 +42,37 @@ public class SupabaseClient {
     public SupabaseService getRetrofitService() {
         return retrofitService;
     }
+
+    public static void updateClientPassword(String userId, String newPassword) {
+        // Gunakan instance retrofitService yang sudah ada
+        SupabaseService service = INSTANCE.getRetrofitService();
+
+        Map<String, Object> body = new HashMap<>();
+        body.put("password", newPassword);
+
+        Call<Void> call = service.updatePassword(
+                API_KEY,
+                "Bearer " + API_KEY,
+                "application/json",
+                "eq." + userId,
+                body
+        );
+
+        call.enqueue(new Callback<Void>() {
+            @Override
+            public void onResponse(Call<Void> call, Response<Void> response) {
+                if (response.isSuccessful()) {
+                    Log.d("Supabase", "Password updated successfully");
+                } else {
+                    Log.e("Supabase", "Update failed: " + response.code() + " - " + response.message());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<Void> call, Throwable t) {
+                Log.e("Supabase", "Network error: " + t.getMessage());
+            }
+        });
+    }
 }
+
