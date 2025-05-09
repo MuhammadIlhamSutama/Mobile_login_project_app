@@ -21,7 +21,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialog;
 
 import java.util.List;
 
-import data.model.Client;
+import data.model.Employee;
 import network.SupabaseClient;
 import network.SupabaseService;
 import retrofit2.Call;
@@ -43,6 +43,10 @@ public class LoginActivity extends AppCompatActivity {
         etPassword = findViewById(R.id.etPassword);
         btnLogin = findViewById(R.id.btnLogin);
         btnTogglePassword = findViewById(R.id.btnTogglePassword);
+
+
+        Button btnContactUs = findViewById(R.id.button_contact_us);
+        btnContactUs.setOnClickListener(v -> openWhatsAppChat("6285123534372")); // Replace with your admin's number
 
         btnLogin.setOnClickListener(v -> {
             String idText = etId.getText().toString().trim();
@@ -72,25 +76,25 @@ public class LoginActivity extends AppCompatActivity {
 
     private void login(String id, String password) {
         SupabaseService service = SupabaseClient.INSTANCE.getRetrofitService();
-        Call<List<Client>> call = service.getClientByUsername(
+        Call<List<Employee>> call = service.getEmployeeByName(
                 "eq." + id,
                 SupabaseClient.API_KEY,
                 "Bearer " + SupabaseClient.API_KEY,
                 "application/json"
         );
 
-        call.enqueue(new Callback<List<Client>>() {
+        call.enqueue(new Callback<List<Employee>>() {
             @Override
-            public void onResponse(Call<List<Client>> call, Response<List<Client>> response) {
+            public void onResponse(Call<List<Employee>> call, Response<List<Employee>> response) {
                 if (response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
-                    Client client = response.body().get(0);
-                    if (client.getPassword().equals(password)) {
+                    Employee employee = response.body().get(0);
+                    if (employee.getPassword().equals(password)) {
                         // Simpan data user ke SharedPreferences
                         SharedPreferences sharedPref = getSharedPreferences("login_pref", Context.MODE_PRIVATE);
                         SharedPreferences.Editor editor = sharedPref.edit();
-                        editor.putString("user_id", String.valueOf(client.getUser_id()));
-                        editor.putString("username", client.getUsername());
-                        editor.putString("access_token", client.getAccess_token());
+                        editor.putString("user_id", String.valueOf(employee.getId()));
+                        editor.putString("username", employee.getName());
+                        editor.putString("access_token", employee.getAccess_token());
                         editor.putString("password", password); // simpan password untuk validasi di ChangePasswordActivity
                         editor.apply();
 
@@ -107,7 +111,7 @@ public class LoginActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onFailure(Call<List<Client>> call, Throwable t) {
+            public void onFailure(Call<List<Employee>> call, Throwable t) {
                 Toast.makeText(LoginActivity.this, "Gagal login: " + t.getMessage(), Toast.LENGTH_LONG).show();
                 t.printStackTrace();
             }
@@ -125,6 +129,21 @@ public class LoginActivity extends AppCompatActivity {
 
         bottomSheetDialog.show();
     }
+
+    private void openWhatsAppChat(String phoneNumber) {
+        String url = "https://wa.me/" + phoneNumber;
+        Intent intent = new Intent(Intent.ACTION_VIEW);
+        intent.setData(android.net.Uri.parse(url));
+        try {
+            startActivity(intent);
+        } catch (Exception e) {
+            Toast.makeText(this, "WhatsApp tidak tersedia", Toast.LENGTH_SHORT).show();
+            e.printStackTrace();
+        }
+
+
+    }
+
 
     @RequiresApi(api = Build.VERSION_CODES.R)
     private void enableFullscreenLayout() {

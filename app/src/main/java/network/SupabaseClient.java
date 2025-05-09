@@ -1,12 +1,9 @@
 package network;
 
 import android.util.Log;
-
 import com.example.myapplication.BuildConfig;
-
 import java.util.HashMap;
 import java.util.Map;
-
 import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Call;
@@ -43,8 +40,7 @@ public class SupabaseClient {
         return retrofitService;
     }
 
-    public static void updateClientPassword(String userId, String newPassword) {
-        // Gunakan instance retrofitService yang sudah ada
+    public static void updateEmployeePassword(String id, String newPassword) {
         SupabaseService service = INSTANCE.getRetrofitService();
 
         Map<String, Object> body = new HashMap<>();
@@ -54,7 +50,7 @@ public class SupabaseClient {
                 API_KEY,
                 "Bearer " + API_KEY,
                 "application/json",
-                "eq." + userId,
+                "eq." + id,
                 body
         );
 
@@ -75,4 +71,3 @@ public class SupabaseClient {
         });
     }
 }
-

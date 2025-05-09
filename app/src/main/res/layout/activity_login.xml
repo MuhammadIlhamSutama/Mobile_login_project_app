@@ -104,6 +104,15 @@
                 android:background="@android:color/transparent"
                 android:src="@drawable/button_login"/>
 
+            <Button
+                android:id="@+id/button_contact_us"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Contact Us"
+                android:background="@android:color/transparent"
+                android:textSize="14sp"
+                android:textIsSelectable="true"
+                android:textColor="@color/ligth_green"/>
 
 
         </LinearLayout>

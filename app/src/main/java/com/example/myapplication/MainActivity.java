@@ -95,7 +95,8 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        String urlWithFilter = SUPABASE_URL + "?employee_id=eq." + userId;
+        String urlWithFilter = SUPABASE_URL + "?employee_id=eq." + userId + "&order=date.desc";
+
 
         Request request = new Request.Builder()
                 .url(urlWithFilter)
@@ -142,9 +143,8 @@ public class MainActivity extends AppCompatActivity {
 
                     runOnUiThread(() -> {
                         attendanceList.clear();
-                        for (int i = items.size() - 1; i >= 0; i--) {
-                            attendanceList.add(items.get(i));
-                        }
+                        attendanceList.addAll(items);
+
                         adapter.notifyDataSetChanged();
                         swipeRefreshLayout.setRefreshing(false);
                     });
