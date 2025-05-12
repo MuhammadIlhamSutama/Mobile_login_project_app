@@ -1,5 +1,8 @@
 package com.example.myapplication;
 
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -10,15 +13,16 @@ import android.util.Log;
 import android.view.WindowInsetsController;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.NotificationCompat;
 
 import java.util.HashMap;
 import java.util.Map;
 
+import at.favre.lib.crypto.bcrypt.BCrypt;
 import network.SupabaseService;
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -46,18 +50,14 @@ public class ChangePasswordActivity extends AppCompatActivity {
         buttonUpdate = findViewById(R.id.buttonUpdatePassword);
 
         Button buttonBack = findViewById(R.id.buttonClose);
-
         buttonBack.setOnClickListener(v -> {
             Intent intent = new Intent(ChangePasswordActivity.this, MainActivity.class);
             startActivity(intent);
-            finish(); // Optional: agar tidak bisa kembali ke halaman ini lagi
+            finish();
         });
 
-
-        // Retrieve user_id from SharedPreferences
         SharedPreferences sharedPref = getSharedPreferences("login_pref", Context.MODE_PRIVATE);
         String userId = sharedPref.getString("user_id", "");
-
         if (!userId.isEmpty()) {
             editTextUserId.setText(userId);
         }
@@ -84,7 +84,6 @@ public class ChangePasswordActivity extends AppCompatActivity {
 
             verifyOldPassword(userId, oldPassword, newPassword);
         });
-
     }
 
     private boolean isValidPassword(String password) {
@@ -96,9 +95,10 @@ public class ChangePasswordActivity extends AppCompatActivity {
 
     private void verifyOldPassword(String userId, String oldPassword, String newPassword) {
         SharedPreferences sharedPref = getSharedPreferences("login_pref", Context.MODE_PRIVATE);
-        String storedOldPassword = sharedPref.getString("password", "");
+        String storedHashedPassword = sharedPref.getString("password", "");
 
-        if (oldPassword.equals(storedOldPassword)) {
+        BCrypt.Result result = BCrypt.verifyer().verify(oldPassword.toCharArray(), storedHashedPassword);
+        if (result.verified) {
             updatePassword(userId, newPassword);
         } else {
             Toast.makeText(ChangePasswordActivity.this, "Old Password is incorrect", Toast.LENGTH_SHORT).show();
@@ -113,8 +113,14 @@ public class ChangePasswordActivity extends AppCompatActivity {
 
         SupabaseService service = retrofit.create(SupabaseService.class);
 
+        String hashedNewPassword = hashPassword(newPassword);
+        if (hashedNewPassword == null) {
+            Toast.makeText(this, "Failed to hash new password", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         Map<String, Object> body = new HashMap<>();
-        body.put("password", newPassword);
+        body.put("password", hashedNewPassword);
 
         Call<Void> call = service.updatePassword(
                 API_KEY,
@@ -128,16 +134,27 @@ public class ChangePasswordActivity extends AppCompatActivity {
             @Override
             public void onResponse(Call<Void> call, Response<Void> response) {
                 if (response.isSuccessful()) {
-                    SharedPreferences sharedPref = getSharedPreferences("login_pref", Context.MODE_PRIVATE);
+                    // Save history
+                    String timestamp = java.text.DateFormat.getDateTimeInstance().format(new java.util.Date());
+                    String event = "Password changed at " + timestamp;
+
+                    SharedPreferences historyPref = getSharedPreferences("password_history", MODE_PRIVATE);
+                    String history = historyPref.getString("history", "");
+                    history += event + "\n";
+                    historyPref.edit().putString("history", history).apply();
+
+                    // Save new password locally
+                    SharedPreferences sharedPref = getSharedPreferences("login_pref", MODE_PRIVATE);
                     SharedPreferences.Editor editor = sharedPref.edit();
-                    editor.putString("password", newPassword);
+                    editor.putString("password", hashedNewPassword);
                     editor.apply();
+
+                    sendPasswordUpdateNotification();
 
                     Toast.makeText(ChangePasswordActivity.this, "Password updated successfully", Toast.LENGTH_SHORT).show();
                     Intent intent = new Intent(ChangePasswordActivity.this, LoginActivity.class);
                     startActivity(intent);
-                    finish(); // agar tidak kembali ke halaman ini lagi
-
+                    finish();
                 } else {
                     Toast.makeText(ChangePasswordActivity.this, "Failed to update password: " + response.code(), Toast.LENGTH_LONG).show();
                     Log.e("Supabase", "Update failed: " + response.code() + " - " + response.message());
@@ -151,6 +168,36 @@ public class ChangePasswordActivity extends AppCompatActivity {
             }
         });
     }
+
+    private void sendPasswordUpdateNotification() {
+        String channelId = "password_update_channel";
+        String channelName = "Password Updates";
+
+        NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel channel = new NotificationChannel(channelId, channelName, NotificationManager.IMPORTANCE_HIGH);
+            channel.setDescription("Notifies when password is updated");
+            notificationManager.createNotificationChannel(channel);
+        }
+
+        Intent intent = new Intent(this, NotificationActivity.class);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, channelId)
+                .setSmallIcon(R.drawable.ic_lock) // Make sure this icon exists
+                .setContentTitle("Password Changed")
+                .setContentText("Tap to view change history.")
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .setAutoCancel(true)
+                .setContentIntent(pendingIntent);
+
+        notificationManager.notify(1, builder.build());
+    }
+
+    private String hashPassword(String password) {
+        return BCrypt.withDefaults().hashToString(12, password.toCharArray());
+    }
+
     @RequiresApi(api = Build.VERSION_CODES.R)
     private void enableFullscreenLayout() {
         getWindow().setDecorFitsSystemWindows(false);
@@ -172,4 +219,3 @@ public class ChangePasswordActivity extends AppCompatActivity {
         }
     }
 }
-

@@ -5,11 +5,12 @@ import java.util.Map;
 
 import data.model.Employee;
 import retrofit2.Call;
+import retrofit2.http.Body;
 import retrofit2.http.GET;
 import retrofit2.http.Header;
 import retrofit2.http.PATCH;
+import retrofit2.http.POST;
 import retrofit2.http.Query;
-import retrofit2.http.Body;
 
 public interface SupabaseService {
     @GET("employees")
@@ -18,6 +19,14 @@ public interface SupabaseService {
             @Header("apikey") String apiKey,
             @Header("Authorization") String auth,
             @Header("Accept") String accept
+    );
+
+    @POST("employees")
+    Call<Void> createEmployee(
+            @Header("apikey") String apiKey,
+            @Header("Authorization") String auth,
+            @Header("Content-Type") String contentType,
+            @Body Employee employee
     );
 
     @PATCH("employees")

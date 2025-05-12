@@ -2,8 +2,11 @@ package network;
 
 import android.util.Log;
 import com.example.myapplication.BuildConfig;
+
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+
 import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Call;
@@ -15,7 +18,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 public class SupabaseClient {
     public static final SupabaseClient INSTANCE = new SupabaseClient();
     public static final String API_KEY = BuildConfig.SUPABASE_KEY;
-    private static final String BASE_URL = "https://oteebvgtsvgrkfooinrv.supabase.co/rest/v1/";
+    private static final String BASE_URL = BuildConfig.BASE_URL;
 
     private final SupabaseService retrofitService;
 
@@ -40,17 +43,18 @@ public class SupabaseClient {
         return retrofitService;
     }
 
-    public static void updateEmployeePassword(String id, String newPassword) {
+    public static void updateEmployeePassword(int id, String newPassword) {
         SupabaseService service = INSTANCE.getRetrofitService();
 
         Map<String, Object> body = new HashMap<>();
         body.put("password", newPassword);
 
+        // Gunakan filter berdasarkan id integer, Supabase pakai format "eq.<value>"
         Call<Void> call = service.updatePassword(
                 API_KEY,
                 "Bearer " + API_KEY,
                 "application/json",
-                "eq." + id,
+                "eq." + id,  // Ini akan menjadi ?id=eq.12 misalnya
                 body
         );
 
@@ -58,9 +62,14 @@ public class SupabaseClient {
             @Override
             public void onResponse(Call<Void> call, Response<Void> response) {
                 if (response.isSuccessful()) {
-                    Log.d("Supabase", "Password updated successfully");
+                    Log.d("Supabase", "Password updated for id=" + id);
                 } else {
-                    Log.e("Supabase", "Update failed: " + response.code() + " - " + response.message());
+                    try {
+                        String error = response.errorBody() != null ? response.errorBody().string() : "No error";
+                        Log.e("Supabase", "Update failed: " + error);
+                    } catch (IOException e) {
+                        Log.e("Supabase", "Error reading error body", e);
+                    }
                 }
             }
 
@@ -70,4 +79,5 @@ public class SupabaseClient {
             }
         });
     }
+
 }

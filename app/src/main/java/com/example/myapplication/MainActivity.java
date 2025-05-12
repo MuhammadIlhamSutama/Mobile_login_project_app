@@ -50,6 +50,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+
         TextView textName = findViewById(R.id.textName);
         SharedPreferences pref = getSharedPreferences("login_pref", MODE_PRIVATE);
         String username = pref.getString("username", "User");
@@ -68,6 +69,10 @@ public class MainActivity extends AppCompatActivity {
 
         LinearLayout moveChangePassword = findViewById(R.id.move_change_password);
         moveChangePassword.setOnClickListener(v -> startActivity(new Intent(MainActivity.this, ChangePasswordActivity.class)));
+
+        LinearLayout moveNotification = findViewById(R.id.move_notification);
+        moveNotification.setOnClickListener(v -> startActivity(new Intent(MainActivity.this, NotificationActivity.class)));
+
 
         swipeRefreshLayout = findViewById(R.id.swipeRefreshLayout);
         swipeRefreshLayout.setOnRefreshListener(this::fetchAttendanceData);

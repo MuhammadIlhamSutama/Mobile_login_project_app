@@ -33,6 +33,12 @@ android {
         buildConfigField("String", "SUPABASE_KEY", "\"${localProperties["SUPABASE_KEY"]}\"")
         buildConfigField("String", "SUPABASE_CLIENTS_URL", "\"${localProperties["SUPABASE_CLIENTS_URL"]}\"")
         buildConfigField("String", "BASE_URL", "\"${localProperties["BASE_URL"]}\"")
+        buildConfigField("String", "SUPABASE_ANON_KEY", "\"${localProperties["SUPABASE_ANON_KEY"]}\"")
+        buildConfigField("String", "SIGNUP_URL", "\"${localProperties["SIGNUP_URL"]}\"")
+        buildConfigField("String", "SUPABASE_RFID_URL", "\"${localProperties["SUPABASE_RFID_URL"]}\"")
+        buildConfigField("String", "SUPABASE_UPDATE_RFID_URL", "\"${localProperties["SUPABASE_UPDATE_RFID_URL"]}\"")
+
+
     }
 
     buildTypes {
@@ -71,10 +77,21 @@ dependencies {
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.okhttp3:logging-interceptor:4.9.3")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+    implementation ("org.json:json:20210307")
 
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
     implementation("com.squareup.okhttp3:okhttp:4.9.3")
     implementation("com.github.bumptech.glide:glide:4.13.2")
     annotationProcessor("com.github.bumptech.glide:compiler:4.13.2")
     implementation("androidx.security:security-crypto:1.1.0-alpha06")
+
+    implementation ("at.favre.lib:bcrypt:0.9.0")
+
+    implementation ("pl.droidsonroids.gif:android-gif-drawable:1.2.27")
+
+
+
+
+
+
 }
