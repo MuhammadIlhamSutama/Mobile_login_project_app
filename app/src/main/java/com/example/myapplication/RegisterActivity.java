@@ -19,8 +19,6 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.IOException;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 
 import at.favre.lib.crypto.bcrypt.BCrypt;
 import okhttp3.Call;
@@ -54,6 +52,12 @@ public class RegisterActivity extends AppCompatActivity {
         inputRfid = findViewById(R.id.input_rfid);
         btnRegister = findViewById(R.id.btn_register);
 
+        // Set color change on click
+        setEditTextColorListeners(inputEmail);
+        setEditTextColorListeners(inputName);
+        setEditTextColorListeners(inputPassword);
+        setEditTextColorListeners(inputRfid);
+
         // Get available RFID tag
         getRfidTag();
 
@@ -72,8 +76,31 @@ public class RegisterActivity extends AppCompatActivity {
 
         ImageView imageView = findViewById(R.id.image_card);
         Glide.with(this).asGif().load(R.drawable.card_gif).into(imageView);
-
     }
+
+    private void setEditTextColorListeners(EditText editText) {
+        // On Click: change background to teal_rounded, text and hint color to white
+        editText.setOnClickListener(v -> {
+            editText.setBackgroundResource(R.drawable.edittext_rounded_teal);
+            editText.setTextColor(Color.WHITE);
+            editText.setHintTextColor(Color.WHITE);
+        });
+
+        // On Focus Change: apply teal style and revert to default
+        editText.setOnFocusChangeListener((v, hasFocus) -> {
+            if (hasFocus) {
+                editText.setBackgroundResource(R.drawable.edittext_rounded_teal);
+                editText.setTextColor(Color.WHITE);
+                editText.setHintTextColor(Color.WHITE);
+            } else {
+                editText.setBackgroundResource(R.drawable.edittext_rounded); // create this for consistency
+                editText.setTextColor(Color.BLACK);
+                editText.setHintTextColor(Color.GRAY);
+            }
+        });
+    }
+
+
 
     private void getRfidTag() {
         String url = "https://oteebvgtsvgrkfooinrv.supabase.co/rest/v1/rfid_tag?status=eq.available&order=id.asc&limit=1";
@@ -213,7 +240,6 @@ public class RegisterActivity extends AppCompatActivity {
                     if (response.isSuccessful()) {
                         // Update RFID status
                         updateRfidStatus(rfid);
-
                         Toast.makeText(RegisterActivity.this, "Register success!", Toast.LENGTH_SHORT).show();
                         finish();
                     } else {
@@ -260,7 +286,6 @@ public class RegisterActivity extends AppCompatActivity {
     private String hashPassword(String password) {
         return BCrypt.withDefaults().hashToString(12, password.toCharArray());
     }
-
 
     @RequiresApi(api = Build.VERSION_CODES.R)
     private void enableFullscreenLayout() {

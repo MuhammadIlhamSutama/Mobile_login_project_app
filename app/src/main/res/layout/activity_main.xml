@@ -36,15 +36,7 @@
             android:layout_height="0dp"
             android:layout_weight="1" />
 
-        <Button
-            android:id="@+id/btnLogout"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="0dp"
-            android:layout_marginTop="45dp"
-            android:layout_marginEnd="20dp"
-            android:backgroundTint="@android:color/holo_red_dark"
-            android:text="Logout" />
+
     </LinearLayout>
 
     <LinearLayout
@@ -127,6 +119,7 @@
 
                     <!-- Icon 1 -->
                     <LinearLayout
+                        android:id="@+id/move_history"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
@@ -136,7 +129,7 @@
                         <ImageView
                             android:layout_width="64dp"
                             android:layout_height="54dp"
-                            android:background="@drawable/kotak_rounded"
+                            android:background="@drawable/fewer_radius_rectangle_rounded"
                             android:backgroundTint="@color/ic_pink"
                             android:padding="12dp"
                             android:src="@drawable/ic_history" />
@@ -162,7 +155,7 @@
                         <ImageView
                             android:layout_width="64dp"
                             android:layout_height="54dp"
-                            android:background="@drawable/kotak_rounded"
+                            android:background="@drawable/fewer_radius_rectangle_rounded"
                             android:backgroundTint="@color/ic_green"
                             android:padding="12dp"
                             android:src="@drawable/ic_apply_leave" />
@@ -189,7 +182,7 @@
                         <ImageView
                             android:layout_width="64dp"
                             android:layout_height="54dp"
-                            android:background="@drawable/kotak_rounded"
+                            android:background="@drawable/fewer_radius_rectangle_rounded"
                             android:backgroundTint="@color/ic_purple"
                             android:padding="12dp"
                             android:src="@drawable/ic_notification" />
@@ -215,7 +208,7 @@
                         <ImageView
                             android:layout_width="64dp"
                             android:layout_height="54dp"
-                            android:background="@drawable/kotak_rounded"
+                            android:background="@drawable/fewer_radius_rectangle_rounded"
                             android:backgroundTint="@color/ic_yellow"
                             android:padding="12dp"
                             android:src="@drawable/ic_about" />

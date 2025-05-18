@@ -1,5 +1,6 @@
 package com.example.myapplication;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -11,15 +12,10 @@ import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
-import android.view.View;
 import android.view.WindowInsetsController;
 import android.widget.Button;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import com.bumptech.glide.Glide;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -50,29 +46,43 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                finishAffinity();
+                System.exit(0);
+            }
+        });
 
+        setupUI();
+
+        // **Tambah baris ini saja untuk pindah ke ProfileActivity ketika klik**
+        findViewById(R.id.profileImageView).setOnClickListener(v ->
+                startActivity(new Intent(MainActivity.this, ProfileActivity.class))
+        );
+
+        recyclerView.post(() -> {
+            swipeRefreshLayout.setRefreshing(true);
+            fetchAttendanceData();
+        });
+    }
+
+    private void setupUI() {
         TextView textName = findViewById(R.id.textName);
         SharedPreferences pref = getSharedPreferences("login_pref", MODE_PRIVATE);
         String username = pref.getString("username", "User");
         textName.setText(username);
 
-        Button logoutButton = findViewById(R.id.btnLogout);
-        logoutButton.setOnClickListener(v -> {
-            SharedPreferences sharedPref = getSharedPreferences("login_pref", MODE_PRIVATE);
-            sharedPref.edit().clear().apply();
-            startActivity(new Intent(MainActivity.this, LoginActivity.class));
-            finish();
-        });
+        findViewById(R.id.move_history).setOnClickListener(v ->
+                startActivity(new Intent(MainActivity.this, HistoryActivity.class)));
+        findViewById(R.id.move_about).setOnClickListener(v ->
+                startActivity(new Intent(MainActivity.this, AboutActivity.class)));
 
-        LinearLayout moveAbout = findViewById(R.id.move_about);
-        moveAbout.setOnClickListener(v -> startActivity(new Intent(MainActivity.this, AboutActivity.class)));
+        findViewById(R.id.move_change_password).setOnClickListener(v ->
+                startActivity(new Intent(MainActivity.this, ChangePasswordActivity.class)));
 
-        LinearLayout moveChangePassword = findViewById(R.id.move_change_password);
-        moveChangePassword.setOnClickListener(v -> startActivity(new Intent(MainActivity.this, ChangePasswordActivity.class)));
-
-        LinearLayout moveNotification = findViewById(R.id.move_notification);
-        moveNotification.setOnClickListener(v -> startActivity(new Intent(MainActivity.this, NotificationActivity.class)));
-
+        findViewById(R.id.move_notification).setOnClickListener(v ->
+                startActivity(new Intent(MainActivity.this, NotificationActivity.class)));
 
         swipeRefreshLayout = findViewById(R.id.swipeRefreshLayout);
         swipeRefreshLayout.setOnRefreshListener(this::fetchAttendanceData);
@@ -81,10 +91,6 @@ public class MainActivity extends AppCompatActivity {
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         adapter = new AttendanceAdapter(attendanceList);
         recyclerView.setAdapter(adapter);
-
-        swipeRefreshLayout.setRefreshing(true);
-        fetchAttendanceData();
-        loadProfilePicture();
     }
 
     private void fetchAttendanceData() {
@@ -101,7 +107,6 @@ public class MainActivity extends AppCompatActivity {
         }
 
         String urlWithFilter = SUPABASE_URL + "?employee_id=eq." + userId + "&order=date.desc";
-
 
         Request request = new Request.Builder()
                 .url(urlWithFilter)
@@ -149,7 +154,6 @@ public class MainActivity extends AppCompatActivity {
                     runOnUiThread(() -> {
                         attendanceList.clear();
                         attendanceList.addAll(items);
-
                         adapter.notifyDataSetChanged();
                         swipeRefreshLayout.setRefreshing(false);
                     });
@@ -159,58 +163,6 @@ public class MainActivity extends AppCompatActivity {
                         swipeRefreshLayout.setRefreshing(false);
                         Toast.makeText(MainActivity.this, "Parsing error", Toast.LENGTH_SHORT).show();
                     });
-                }
-            }
-        });
-    }
-
-    private void loadProfilePicture() {
-        SharedPreferences pref = getSharedPreferences("login_pref", MODE_PRIVATE);
-        String userId = pref.getString("user_id", null);
-        if (userId == null) return;
-
-        OkHttpClient client = new OkHttpClient();
-        String url = SUPABASE_CLIENTS_URL + "?user_id=eq." + userId;
-
-        Request request = new Request.Builder()
-                .url(url)
-                .addHeader("apikey", SUPABASE_API_KEY)
-                .addHeader("Authorization", "Bearer " + SUPABASE_API_KEY)
-                .addHeader("Accept", "application/json")
-                .build();
-
-        client.newCall(request).enqueue(new Callback() {
-            @Override
-            public void onFailure(Call call, IOException e) {
-                // Silent failure
-            }
-
-            @Override
-            public void onResponse(Call call, Response response) throws IOException {
-                if (!response.isSuccessful()) return;
-
-                String result = response.body().string();
-                try {
-                    JSONArray arr = new JSONArray(result);
-                    if (arr.length() > 0) {
-                        String imageUrl = arr.getJSONObject(0).optString("profile_picture", null);
-                        if (imageUrl != null && !imageUrl.isEmpty()) {
-                            runOnUiThread(() -> {
-                                ImageView imageView = findViewById(R.id.profileImageView);
-                                Glide.with(MainActivity.this)
-                                        .load(imageUrl)
-                                        .placeholder(R.drawable.ic_profile)
-                                        .circleCrop()
-                                        .into(imageView);
-                                imageView.setOnClickListener(v -> {
-                                    Intent intent = new Intent(MainActivity.this, ProfileActivity.class);
-                                    startActivity(intent);
-                                });
-                            });
-                        }
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
                 }
             }
         });

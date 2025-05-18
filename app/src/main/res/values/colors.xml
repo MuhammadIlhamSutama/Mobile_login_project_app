@@ -4,10 +4,14 @@
     <color name="white">#FFFFFFFF</color>
     <color name="contact_us">#475467</color>
     <color name="ligth_green">#01A4AA</color>
+    <color name="ligth_teal">#1DDBC4</color>
     <color name="teal">#28B1B6</color>
     <color name="dark_green">#01A4AA</color>
     <color name="ic_green">#19CF72</color>
     <color name="ic_pink">#FF3670</color>
     <color name="ic_purple">#6436FF</color>
     <color name="ic_yellow">#FEB700</color>
+
+    <color name="bg_card">#E0F7F4</color>
+
 </resources>

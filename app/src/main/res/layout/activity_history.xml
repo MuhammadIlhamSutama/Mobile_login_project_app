@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/mainLayout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".HistoryActivity">
+
+    <!-- Main Content -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <!-- Search Bar -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="15dp"
+            android:background="@drawable/edittext_rounded"
+            android:padding="8dp"
+            android:gravity="center_vertical">
+
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_search" />
+
+            <EditText
+                android:id="@+id/searchEditText"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:hint="Search by date"
+                android:textAlignment="center"
+                android:background="@android:color/transparent"
+                android:paddingHorizontal="8dp" />
+
+            <ImageView
+                android:layout_width="31dp"
+                android:layout_height="31dp"
+                android:src="@drawable/ic_calendar" />
+        </LinearLayout>
+
+        <!-- Scrollable Filter Buttons -->
+        <HorizontalScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fillViewport="false"
+            android:scrollbars="none"
+            android:layout_marginTop="18dp">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:paddingHorizontal="8dp">
+
+                <Button
+                    android:id="@+id/btnShowAll"
+                    android:layout_width="160dp"
+                    android:layout_height="32dp"
+                    android:text="Show All"
+                    android:textColor="@color/white"
+                    android:background="@drawable/fewer_radius_rectangle_rounded"
+                    android:backgroundTint="@color/teal"
+                    android:textAlignment="center" />
+
+                <Button
+                    android:id="@+id/btnToday"
+                    android:layout_width="160dp"
+                    android:layout_height="32dp"
+                    android:textColor="@color/white"
+                    android:background="@drawable/fewer_radius_rectangle_rounded"
+                    android:backgroundTint="@color/ligth_teal"
+                    android:text="Today"
+                    android:layout_marginStart="8dp" />
+
+                <Button
+                    android:id="@+id/btnMonth"
+                    android:layout_width="160dp"
+                    android:layout_height="32dp"
+                    android:textColor="@color/white"
+                    android:background="@drawable/fewer_radius_rectangle_rounded"
+                    android:backgroundTint="@color/ligth_teal"
+                    android:text="Month"
+                    android:layout_marginStart="8dp" />
+            </LinearLayout>
+        </HorizontalScrollView>
+
+        <!-- RecyclerView -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerViewHistory"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:padding="8dp"
+            android:clipToPadding="false"
+            android:scrollbars="vertical"
+            android:layout_marginTop="18dp" />
+    </LinearLayout>
+
+    <!-- White Bottom Overlay -->
+
+</FrameLayout>

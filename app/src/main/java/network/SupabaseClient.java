@@ -6,6 +6,7 @@ import com.example.myapplication.BuildConfig;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
@@ -21,12 +22,16 @@ public class SupabaseClient {
     private static final String BASE_URL = BuildConfig.BASE_URL;
 
     private final SupabaseService retrofitService;
+    private final FotoService fotoService;
 
     private SupabaseClient() {
         HttpLoggingInterceptor logging = new HttpLoggingInterceptor();
         logging.setLevel(HttpLoggingInterceptor.Level.BODY);
 
         OkHttpClient client = new OkHttpClient.Builder()
+                .connectTimeout(5, TimeUnit.SECONDS)
+                .readTimeout(5, TimeUnit.SECONDS)
+                .writeTimeout(5, TimeUnit.SECONDS)
                 .addInterceptor(logging)
                 .build();
 
@@ -37,10 +42,15 @@ public class SupabaseClient {
                 .build();
 
         retrofitService = retrofit.create(SupabaseService.class);
+        fotoService = retrofit.create(FotoService.class); // 💡 Tambahkan ini
     }
 
     public SupabaseService getRetrofitService() {
         return retrofitService;
+    }
+
+    public FotoService getFotoService() {
+        return fotoService;
     }
 
     public static void updateEmployeePassword(int id, String newPassword) {
@@ -49,12 +59,11 @@ public class SupabaseClient {
         Map<String, Object> body = new HashMap<>();
         body.put("password", newPassword);
 
-        // Gunakan filter berdasarkan id integer, Supabase pakai format "eq.<value>"
         Call<Void> call = service.updatePassword(
                 API_KEY,
                 "Bearer " + API_KEY,
                 "application/json",
-                "eq." + id,  // Ini akan menjadi ?id=eq.12 misalnya
+                "eq." + id,
                 body
         );
 
@@ -79,5 +88,4 @@ public class SupabaseClient {
             }
         });
     }
-
 }

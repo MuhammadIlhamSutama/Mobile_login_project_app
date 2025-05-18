@@ -9,10 +9,17 @@ import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
+import android.text.method.HideReturnsTransformationMethod;
+import android.text.method.PasswordTransformationMethod;
 import android.util.Log;
+import android.view.Window;
 import android.view.WindowInsetsController;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.Space;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.RequiresApi;
@@ -33,7 +40,12 @@ import retrofit2.converter.gson.GsonConverterFactory;
 public class ChangePasswordActivity extends AppCompatActivity {
 
     EditText editTextUserId, editTextOldPassword, editTextNewPassword, editTextConfirmPassword;
+    ImageView toggleOldPass, toggleNewPass, toggleConfirmPass;
     Button buttonUpdate;
+
+    boolean isOldVisible = false;
+    boolean isNewVisible = false;
+    boolean isConfirmVisible = false;
 
     private static final String BASE_URL = BuildConfig.BASE_URL;
     private static final String API_KEY = BuildConfig.SUPABASE_KEY;
@@ -43,11 +55,27 @@ public class ChangePasswordActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_change_password);
 
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            Window window = getWindow();
+            window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+            window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+            window.setStatusBarColor(Color.parseColor("#28B1B6"));
+        }
+
+
+
         editTextUserId = findViewById(R.id.editTextClientId);
         editTextOldPassword = findViewById(R.id.editTextOldPassword);
         editTextNewPassword = findViewById(R.id.editTextNewPassword);
         editTextConfirmPassword = findViewById(R.id.editTextConfirmPassword);
         buttonUpdate = findViewById(R.id.buttonUpdatePassword);
+
+        toggleOldPass = findViewById(R.id.toggleOldPass);
+        toggleNewPass = findViewById(R.id.toggleNewPass);
+        toggleConfirmPass = findViewById(R.id.toggleConfirmPass);
+
+        TextView contactUs = findViewById(R.id.textViewContactUs);
+        contactUs.setOnClickListener(v -> openWhatsAppChat("6285123534372"));
 
         Button buttonBack = findViewById(R.id.buttonClose);
         buttonBack.setOnClickListener(v -> {
@@ -61,6 +89,21 @@ public class ChangePasswordActivity extends AppCompatActivity {
         if (!userId.isEmpty()) {
             editTextUserId.setText(userId);
         }
+
+        toggleOldPass.setOnClickListener(v -> {
+            isOldVisible = !isOldVisible;
+            togglePasswordVisibility(editTextOldPassword, isOldVisible, toggleOldPass);
+        });
+
+        toggleNewPass.setOnClickListener(v -> {
+            isNewVisible = !isNewVisible;
+            togglePasswordVisibility(editTextNewPassword, isNewVisible, toggleNewPass);
+        });
+
+        toggleConfirmPass.setOnClickListener(v -> {
+            isConfirmVisible = !isConfirmVisible;
+            togglePasswordVisibility(editTextConfirmPassword, isConfirmVisible, toggleConfirmPass);
+        });
 
         buttonUpdate.setOnClickListener(view -> {
             String oldPassword = editTextOldPassword.getText().toString().trim();
@@ -84,6 +127,30 @@ public class ChangePasswordActivity extends AppCompatActivity {
 
             verifyOldPassword(userId, oldPassword, newPassword);
         });
+    }
+
+    private void togglePasswordVisibility(EditText editText, boolean visible, ImageView toggleIcon) {
+        if (visible) {
+            editText.setTransformationMethod(HideReturnsTransformationMethod.getInstance());
+            toggleIcon.setImageResource(R.drawable.ic_visibility_off); // icon to show when password is visible
+        } else {
+            editText.setTransformationMethod(PasswordTransformationMethod.getInstance());
+            toggleIcon.setImageResource(R.drawable.ic_visibility); // icon to show when password is hidden
+        }
+        editText.setSelection(editText.getText().length());
+    }
+
+    private void openWhatsAppChat(String phoneNumber) {
+        try {
+            String message = "Hello, I forgot my password and need help.";
+            String url = "https://wa.me/" + phoneNumber + "?text=" + java.net.URLEncoder.encode(message, "UTF-8");
+
+            Intent i = new Intent(Intent.ACTION_VIEW);
+            i.setData(android.net.Uri.parse(url));
+            startActivity(i);
+        } catch (Exception e) {
+            Toast.makeText(this, "WhatsApp tidak tersedia", Toast.LENGTH_SHORT).show();
+        }
     }
 
     private boolean isValidPassword(String password) {
@@ -134,16 +201,19 @@ public class ChangePasswordActivity extends AppCompatActivity {
             @Override
             public void onResponse(Call<Void> call, Response<Void> response) {
                 if (response.isSuccessful()) {
-                    // Save history
                     String timestamp = java.text.DateFormat.getDateTimeInstance().format(new java.util.Date());
                     String event = "Password changed at " + timestamp;
 
-                    SharedPreferences historyPref = getSharedPreferences("password_history", MODE_PRIVATE);
-                    String history = historyPref.getString("history", "");
-                    history += event + "\n";
-                    historyPref.edit().putString("history", history).apply();
+                    SharedPreferences loginPref = getSharedPreferences("login_pref", MODE_PRIVATE);
+                    String userId = loginPref.getString("user_id", "");
 
-                    // Save new password locally
+                    SharedPreferences historyPref = getSharedPreferences("password_history", MODE_PRIVATE);
+                    String historyKey = "history_" + userId;
+                    String history = historyPref.getString(historyKey, "");
+                    history += event + "\n";
+                    historyPref.edit().putString(historyKey, history).apply();
+
+
                     SharedPreferences sharedPref = getSharedPreferences("login_pref", MODE_PRIVATE);
                     SharedPreferences.Editor editor = sharedPref.edit();
                     editor.putString("password", hashedNewPassword);
@@ -184,7 +254,7 @@ public class ChangePasswordActivity extends AppCompatActivity {
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, channelId)
-                .setSmallIcon(R.drawable.ic_lock) // Make sure this icon exists
+                .setSmallIcon(R.drawable.ic_lock)
                 .setContentTitle("Password Changed")
                 .setContentText("Tap to view change history.")
                 .setPriority(NotificationCompat.PRIORITY_HIGH)

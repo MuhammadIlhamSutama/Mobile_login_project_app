@@ -72,7 +72,6 @@ dependencies {
     implementation(libs.activity)
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.3")
-    androidTestImplementation("androidx.espresso:espresso-core:3.4.0")
 
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.okhttp3:logging-interceptor:4.9.3")
@@ -87,7 +86,10 @@ dependencies {
 
     implementation ("at.favre.lib:bcrypt:0.9.0")
 
-    implementation ("pl.droidsonroids.gif:android-gif-drawable:1.2.27")
+
+
+
+    implementation ("androidx.core:core-ktx:1.12.0")
 
 
 

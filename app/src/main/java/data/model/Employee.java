@@ -1,10 +1,15 @@
 package data.model;
 
+import com.google.gson.annotations.SerializedName;
+
 public class Employee {
     private int id;
-    private String uuid; // ✅ Tambahkan ini
+    private String uuid;
     private String name;
+
+    @SerializedName("rfid_tag")
     private String rfid_tag;
+
     private String password;
     private String access_token;
 
@@ -16,7 +21,6 @@ public class Employee {
         this.password = password;
     }
 
-    // ✅ Tambahkan getter dan setter untuk UUID
     public String getUuid() {
         return uuid;
     }
@@ -25,7 +29,6 @@ public class Employee {
         this.uuid = uuid;
     }
 
-    // Getters & setters lainnya
     public int getId() { return id; }
     public String getName() { return name; }
     public String getRfid_tag() { return rfid_tag; }

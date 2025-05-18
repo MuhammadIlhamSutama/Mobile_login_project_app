@@ -23,7 +23,7 @@ import java.util.List;
 public class NotificationActivity extends AppCompatActivity {
 
     RecyclerView recyclerViewHistory;
-    private HistoryAdapter adapter;
+    private NotificationAdapter adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,8 +38,12 @@ public class NotificationActivity extends AppCompatActivity {
         recyclerViewHistory.setLayoutAnimation(animation);
 
         // Load history from SharedPreferences
+        SharedPreferences loginPref = getSharedPreferences("login_pref", MODE_PRIVATE);
+        String userId = loginPref.getString("user_id", "");
+
         SharedPreferences historyPref = getSharedPreferences("password_history", MODE_PRIVATE);
-        String historyRaw = historyPref.getString("history", "");
+        String historyKey = "history_" + userId;
+        String historyRaw = historyPref.getString(historyKey, "");
 
         List<String> historyList = new ArrayList<>();
         if (!historyRaw.isEmpty()) {
@@ -52,12 +56,11 @@ public class NotificationActivity extends AppCompatActivity {
             }
         }
 
-
         // Hide RecyclerView if history is empty
         recyclerViewHistory.setVisibility(historyList.isEmpty() ? View.GONE : View.VISIBLE);
 
         // Setup adapter
-        adapter = new HistoryAdapter(historyList);
+        adapter = new NotificationAdapter(historyList);
         recyclerViewHistory.setAdapter(adapter);
 
         // Swipe-to-delete
@@ -78,15 +81,21 @@ public class NotificationActivity extends AppCompatActivity {
 
                 Toast.makeText(NotificationActivity.this, "Deleted: " + removed, Toast.LENGTH_SHORT).show();
 
-                // Update SharedPreferences
+                // Update SharedPreferences with correct key
                 StringBuilder newHistory = new StringBuilder();
                 for (String item : historyList) {
                     newHistory.append(item).append("\n");
                 }
 
-                historyPref.edit()
-                        .putString("history", newHistory.toString().trim())
-                        .apply();
+                SharedPreferences.Editor editor = historyPref.edit();
+                if (historyList.isEmpty()) {
+                    // Remove key if no history left
+                    editor.remove(historyKey);
+                    recyclerViewHistory.setVisibility(View.GONE);
+                } else {
+                    editor.putString(historyKey, newHistory.toString().trim());
+                }
+                editor.apply();
             }
         });
         itemTouchHelper.attachToRecyclerView(recyclerViewHistory);

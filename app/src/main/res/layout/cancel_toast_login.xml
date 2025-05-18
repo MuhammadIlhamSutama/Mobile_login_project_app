@@ -40,6 +40,7 @@
             android:textStyle="bold" />
 
         <TextView
+            android:id="@+id/tvMessage"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="24dp"
@@ -48,6 +49,7 @@
             android:textAlignment="center"
             android:textColor="#555555"
             android:textSize="14sp" />
+
 
         <Button
             android:id="@+id/btnClosed"
